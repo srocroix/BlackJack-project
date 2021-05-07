@@ -1,13 +1,35 @@
-# We need to set the BJ rules in our code.
+#======================
+# BLACKJACK by srocroix
+#======================
+import random
 
-# First we set the Dealing rules:
-clubs = {'Ace of Clubs': 11, '2 of Clubs': 2, '3 of Clubs': 3, '4 of Clubs': 4, '5 of Clubs': 5, '6 of Clubs': 6, '7 of Clubs': 7, '8 of Clubs': 8, '9 of Clubs': 9, '10 of Clubs': 10, 'Jack of Clubs': 10, 'Queen of Clubs': 10, 'King of Clubs': 10}
-diamonds = {'Ace of Diamonds': 11, '2 of Diamonds': 2, '3 of Diamonds': 3, '4 of Diamonds': 4, '5 of Diamonds': 5, '6 of Diamonds': 6, '7 of Diamonds': 7, '8 of Diamonds': 8, '9 of Diamonds': 9, '10 of Diamonds': 10, 'Jack of Diamonds': 10, 'Queen of Diamonds': 10, 'King of Diamonds': 10}
-hearts = {'Ace of Hearts': 11, '2 of Hearts': 2, '3 of Hearts': 3, '4 of Hearts': 4, '5 of Hearts': 5, '6 of Hearts': 6, '7 of Hearts': 7, '8 of Hearts': 8, '9 of Hearts': 9, '10 of Hearts': 10, 'Jack of Hearts': 10, 'Queen of Hearts': 10, 'King of Hearts': 10}
-spades = {'Ace of Spades': 11, '2 of Spades': 2, '3 of Spades': 3, '4 of Spades': 4, '5 of Spades': 5, '6 of Spades': 6, '7 of Spades': 7, '8 of Spades': 8, '9 of Spades': 9, '10 of Spades': 10, 'Jack of Spades': 10, 'Queen of Spades': 10, 'King of Spades': 10}
+# 52 deck cards (13 cards by suit) data:
 
-four_cards_suits = clubs + diamonds + hearts + spades
-deck = four_cards_suits
+deck = []
+
+clubs = [['Ace', 'Clubs', 11], ['2', 'Clubs', 2], ['3', 'Clubs', 3], ['4', 'Clubs', 4], ['5', 'Clubs', 5], ['6', 'Clubs', 6], ['7', 'Clubs', 7], ['8', 'Clubs', 8], ['9', 'Clubs', 9], ['10', 'Clubs', 10], ['Jack', 'Clubs', 10], ['Queen', 'Clubs', 10], ['King', 'Clubs', 10]]
+diamonds = [['Ace', 'Diamonds', 11], ['2', 'Diamonds', 2], ['3', 'Diamonds', 3], ['4', 'Diamonds', 4], ['5', 'Diamonds', 5], ['6', 'Diamonds', 6], ['7', 'Diamonds', 7], ['8', 'Diamonds', 8], ['9', 'Diamonds', 9], ['10', 'Diamonds', 10], ['Jack', 'Diamonds', 10], ['Queen', 'Diamonds', 10], ['King', 'Diamonds', 10]]
+hearts = [['Ace', 'Hearts', 11], ['2', 'Hearts', 2], ['3', 'Hearts', 3], ['4', 'Hearts', 4], ['5', 'Hearts', 5], ['6', 'Hearts', 6], ['7', 'Hearts', 7], ['8', 'Hearts', 8], ['9', 'Hearts', 9], ['10', 'Hearts', 10], ['Jack', 'Hearts', 10], ['Queen', 'Hearts', 10], ['King', 'Hearts', 10]]
+spades = [['Ace', 'Spades', 11], ['2', 'Spades', 2], ['3 of Spades', 3], ['4', 'Spades', 4], ['5', 'Spades', 5], ['6', 'Spades', 6], ['7', 'Spades', 7], ['8', 'Spades', 8], ['9', 'Spades', 9], ['10', 'Spades', 10], ['Jack', 'Spades', 10], ['Queen', 'Spades', 10], ['King', 'Spades', 10]]
+
+deck.extend(clubs)
+deck.extend(diamonds)
+deck.extend(hearts)
+deck.extend(spades)
+# print(deck)
+
+# Set how many decks containsare in the shoe:
+
 shoe = 8 * deck
+# print(shoe)
 
-print(four_cards_suits)
+# Shuffle function definition:
+
+def shuffle(list_to_shuffle):
+    return random.shuffle(list_to_shuffle)
+
+shuffle(shoe)
+# WARNING: The last 60 to 75 cards won't be used (the plastic insert card must be placed before them)
+
+# print(deck)
+print(shoe)
