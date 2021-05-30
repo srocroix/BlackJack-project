@@ -39,9 +39,10 @@ def custom_time_sleep(sec):
 def double_line():
     print("\n==============================")
 
-robot_activated = False
+robot_activated = None
 robot_num_of_games = 0
 game_running = True
+soft_17_hit = None
 game_count = 0
 winrate = 0
 winning_count = 0
@@ -57,16 +58,20 @@ highest_bet = 0
 bet_auto_activated = False
 my_money = 0
 my_money_final = 0
+losing_money_index = 0
 bet_strategy = False
 
 hit = "a"
 stand = "b"
+double_down = "c"
 
 strategy_alembert_pyramid = False
 strategy_martingale = False
+strategy_inverted_martingale = False
 strategy_custom_martingale = False
-strategy_hi_lo_counting = False
 strategy_custom_alembert_pyramid = False
+strategy_piquemouche_martingale = False
+strategy_custom_piquemouche_martingale = False
 
 last_game_blackjack = 0
 last_game_win = 0
@@ -75,6 +80,8 @@ last_game_draw = 0
 winning_loop = 0
 losing_loop = 0
 big_losing_loop = 0
+double_down_counter = 0
+won_double_down_counter = 0
 
 new_game_settings = True
 
@@ -99,10 +106,13 @@ while game_running == True:
     dealer_score = 0
     player_score = 0
     ace_in_hand = 0
+    dealer_ace_in_hand = 0
+    double_down_bet = 0
 
     hitting_card = True
     player_bust = False
     dealer_bust = False
+    double_down_status = False
     ace_face_up_card = False
     player_black_jack = False
     dealer_black_jack = False
@@ -134,13 +144,14 @@ while game_running == True:
     def calculate_dealer_score():
         global dealer_score
         dealer_score = 0
-        ace_in_hand = 0
+        global dealer_ace_in_hand
+        dealer_ace_in_hand = 0
         for card in dealer_hand:
             dealer_score += card[-1]
             if card[0] == 'A':
-                ace_in_hand += 1
+                dealer_ace_in_hand += 1
         for card in dealer_hand:
-            if card[0] == 'A' and dealer_score > 21 and ace_in_hand > 0:
+            if card[0] == 'A' and dealer_score > 21 and dealer_ace_in_hand > 0:
                 dealer_score -= 10
         return dealer_score
 
@@ -172,8 +183,6 @@ while game_running == True:
                 if card[-1] == 4 or card[-1] == 5:
                     rule_check == True
         return rule_check
-    
-    # Work In Progress:
 
     def hi_lo_cards_counting():
         global hi_lo_counter_running_count
@@ -204,64 +213,128 @@ while game_running == True:
 
     # New game settings:
 
-    if game_count <= 0 or new_game_settings == True:
+    if game_count == 0 or new_game_settings == True:
 
-        if my_money_final <= 0 or bet_value > my_money_final :
+        while my_money_final <= 0 or bet_value > my_money_final :
             print("\nYour account is empty!")
-            my_money_handle = input("\nHow much money do you want to add on your casino account?\n\n")
-            my_money = float(my_money_handle)
-            my_money_final = my_money
+            try:
+                my_money_handle = input("\nHow much money do you want to add on your casino account?\n\n")
+                my_money = float(my_money_handle)
+                my_money_final = my_money
+            except:
+                print("\nPlease enter a number.\n(Avoid any letters or special caracters)")
+                continue
+        
+        while soft_17_hit == None:
+            try:
+                soft_17_hit_handle = input("\nWhat's the dealer move on soft 17?\na) He stands\nb) He hits\n\n")
+                soft_17_hit_input = soft_17_hit_handle.lower()
 
-        if game_count == 0:
-            bet_auto_handle = input("\nDo you want to active auto bet?\na) Yes\nb) No\n\n")
-            bet_auto_input = bet_auto_handle.lower()
+                if soft_17_hit_input == "a":
+                    soft_17_hit = True
+                elif soft_17_hit_input == "b":
+                    soft_17_hit = False
+            except:
+                print("\nPlease enter a valid answer.\n(Input 'A' or 'B'\n")
+                continue
+        
+        while robot_activated == None:
             
-        if bet_auto_input == "a":
-            bet_auto_activated = True
-            bet_value_handle = input("\nHow much do you want to bet?\n\n")
-            basic_bet_value = float(bet_value_handle)
-        elif bet_auto_input != "a" or bet_auto_input == "b":
-            bet_auto_activated = False
+            running_robot_hande = input("\nDo you want to run the robot or play manually?\na) Run the Robot\nb) Play manually\n\n")
+            running_robot_input = running_robot_hande.lower()
+        
+            if running_robot_input == "a":
+                robot_activated = True
+
+            elif running_robot_input == "b":
+                robot_activated = False
+                bet_auto_handle = input("\nDo you want to turn on auto bet?\na) Yes\nb) No\n\n")
+                bet_auto_input = bet_auto_handle.lower()
     
-        if bet_auto_activated == True:
+                if bet_auto_input == "a":
+                    bet_auto_activated = True
+                    bet_value_handle = input("\nHow much do you want to bet?\n\n")
+                    basic_bet_value = float(bet_value_handle)
+                elif bet_auto_input != "a" or bet_auto_input == "b":
+                    bet_auto_activated = False
+            else:
+                print("\nPlease enter a valid answer!")
+                continue
+    
+        if bet_auto_activated == True or robot_activated == True:
             bet_strategy_handle = input("\nDo you want to use a bet strategy?\na) Yes\nb) No\n\n(Note: If you answer 'Yes' by taping 'a' key, the robot will play ofr you!)\n\n")
             bet_strategy_input = bet_strategy_handle.lower()
-            if bet_strategy_input == "a":
-                robot_activated = True
-                bet_strategy = True
-            else:
-                bet_strategy = False
-                robot_activated = False
 
-        if bet_strategy == True:
-            pick_strategy_handle = input("\nWhat strategy would you like to use?\na) Martingale\nb) Alembert Pyramid\nc) Custom Martingale\nd) Hi-Lo counting\ne) Custom Alembert Pyramid\n\n")
-            pick_strategy_input = pick_strategy_handle.lower()
-            if pick_strategy_input == "a":
-                strategy_martingale = True
-            elif pick_strategy_input == "b":
-                strategy_alembert_pyramid = True
-            elif pick_strategy_input == "c":
-                strategy_custom_martingale = True
-            elif pick_strategy_input == "d":
-                strategy_hi_lo_counting = True
-            elif pick_strategy_input == "e":
-                strategy_custom_alembert_pyramid = True
+            if bet_strategy_input == "a":
+                while bet_strategy == False:
+                    pick_strategy_handle = input("\nWhat strategy would you like to use?\na) Martingale\nb) Alembert Pyramid\nc) Custom Martingale\nd) Inverted Martingale\ne) Custom Alembert Pyramid\nf) Piquemouche Martingale (WIP)\n\n")
+                    pick_strategy_input = pick_strategy_handle.lower()
+
+                    if pick_strategy_input == "a":
+                        print("\nMartingale Strategy selected!")
+                        strategy_martingale = True
+                        bet_strategy = True
+                    elif pick_strategy_input == "b":
+                        print("\nAlembert Pyramid Strategy selected!")
+                        strategy_alembert_pyramid = True
+                        bet_strategy = True
+                    elif pick_strategy_input == "c":
+                        print("\nCustom Martingale Strategy selected!")
+                        strategy_custom_martingale = True
+                        bet_strategy = True
+                    elif pick_strategy_input == "d":
+                        print("\nInverted Martingale Strategy selected!")
+                        strategy_inverted_martingale = True
+                        bet_strategy = True
+                    elif pick_strategy_input == "e":
+                        print("\nCustom Alembert Pyramid Strategy selected!")
+                        strategy_custom_alembert_pyramid = True
+                        bet_strategy = True
+                    elif pick_strategy_input == "f":
+                        print("\nPiquemouche Martingale Strategy selected!")
+                        strategy_piquemouche_martingale = True
+                        bet_strategy = True
+                    else:
+                        print("\nYou didn't pick any bet strategy!\nPlease enter a valid answer.")
+                        bet_strategy = False
+                        continue
+                
             else:
-                strategy_martingale = False
-                strategy_alembert_pyramid = False
-                strategy_custom_martingale = False
-                strategy_hi_lo_counting = False
-                strategy_custom_alembert_pyramid = False
+                print("\nYou didn't pick any bet strategy!\nThe Bet strategy system is turned off.")
+                bet_strategy = False
 
         if robot_activated == True:
-            robot_num_of_games_handle = input("\nHow many games do you want the robot to play?\n\nNote: If you tap anything but a whole number (integer), the robot will palyer endlessly\n\n")
-            robot_num_of_games = int(robot_num_of_games_handle)
+            while robot_num_of_games == 0:
+                try:
+                    robot_num_of_games_handle = input("\nHow many games do you want the robot to play?\n\n")
+                    robot_num_of_games = int(robot_num_of_games_handle)
+                except:
+                    print("\nPlease enter a number.\n(Avoid any letters or special caracters)")
+                    continue
 
+            while basic_bet_value == 0 or basic_bet_value > my_money_final:
+                try:
+                    bet_value_handle = input("\nHow much do you want the robot to bet?\n\n")
+                    basic_bet_value = float(bet_value_handle)
+
+                    if basic_bet_value > my_money_final:
+                        print("\nYou can't bet so much!\nYou only have", my_money_final, "€ on your account.")
+                        continue
+
+                except:
+                    print("\nPlease enter a number.\n(Avoid any letters or special caracters)")
+                    continue
+    
     new_game_settings = False
 
-    if bet_auto_activated == False:
-        bet_value_handle = input("\nHow much do you want to bet?\n\n")
-        basic_bet_value = float(bet_value_handle)
+    if bet_auto_activated == False and robot_activated == False:
+        while basic_bet_value == 0:
+            try:
+                bet_value_handle = input("\nHow much do you want to bet?\n\n")
+                basic_bet_value = float(bet_value_handle)
+            except:
+                print("\nPlease enter a number.\n(Avoid any letters or special caracters)")
+                continue
 
     my_money = Decimal(my_money)
     my_money = round(my_money, 2)
@@ -278,66 +351,66 @@ while game_running == True:
     # Betting Strategies Rules:
 
     if strategy_martingale == True:
+        if game_count == 0:
+            bet_value = basic_bet_value
         if last_game_lose > 0 and last_game_draw == 0 and last_game_win == 0:
             bet_value = bet_value * 2
         elif last_game_win > 0:
             bet_value = basic_bet_value
         elif last_game_draw > 0:
             pass
-
-    if strategy_alembert_pyramid == True:
-        if last_game_win > 0:
-            if bet_value > basic_bet_value:
-                bet_value -= basic_bet_value
-            elif bet_value == basic_bet_value:
-                pass
-        elif last_game_lose > 0:
-            bet_value += basic_bet_value
-        elif last_game_draw > 0:
-            pass
-        
-    if strategy_custom_martingale == True:
-        max_bet_multiplier = 4
-        if last_game_lose > 0 and last_game_draw == 0 and last_game_lose < max_bet_multiplier:
-            bet_value = bet_value * 2
-        elif last_game_win > 0 or last_game_lose >= max_bet_multiplier:
-            bet_value = basic_bet_value
         else:
-            bet_value = bet_value
-
-    # Known issue: The robot doesn't use the custom Alembert Pyramid correcty. It doesn't reboot the bet value after 2 wins as wanted.
-
-    if strategy_custom_alembert_pyramid == True:
-        max_bet_multiplier = 10
-        if last_game_draw == 0 and last_game_blackjack == 0:
-            if losing_loop > 0:
-                bet_value += basic_bet_value
-            elif winning_loop == 1 and (bet_value <= (3 * basic_bet_value)):
-                bet_value = basic_bet_value
-            elif winning_loop == 1 and (bet_value > (3 * basic_bet_value)):
-                bet_value -= basic_bet_value
-            elif winning_loop >= 2:
-                bet_value = basic_bet_value
-        elif last_game_draw >= 1:
-            pass
-        elif last_game_blackjack >= 1:
             bet_value = basic_bet_value
 
-    # Known issue: The robot doesn't seem to use the hi_lo counting strategy as it should be. Further investigation needed to fix it.
+    elif strategy_alembert_pyramid == True:
+        if game_count == 0:
+            bet_value = basic_bet_value
+        elif last_game_draw == 0 and winning_loop > 0:
+                bet_value -= basic_bet_value
+        elif last_game_draw == 0 and losing_loop > 0:
+            bet_value += basic_bet_value
 
-    if strategy_hi_lo_counting == True:
-        if hi_lo_counter_true_count >= 0:
-            bet_value = basic_bet_value * 2
-        if hi_lo_counter_true_count >= 2:
+    elif strategy_inverted_martingale == True:
+        if game_count == 0:
+            bet_value = basic_bet_value
+        if (winning_loop % 2) == 0 and last_game_draw == 0:
             bet_value = basic_bet_value * 2
         
+    elif strategy_custom_martingale == True:
+        if (game_count == 0) or (last_game_draw == 0 and winning_loop > 0):
+            bet_value = basic_bet_value
+        elif last_game_draw == 0 and losing_loop > 0:
+            bet_value += basic_bet_value
 
-    if strategy_martingale == False and strategy_alembert_pyramid == False and strategy_custom_martingale == False and strategy_hi_lo_counting == False and strategy_custom_alembert_pyramid == False:
+    elif strategy_custom_alembert_pyramid == True:
+        if (game_count == 0) or (last_game_draw == 0 and winning_loop > 0):
+            bet_value = basic_bet_value
+        elif last_game_draw == 0 and losing_loop > 0:
+            bet_value += basic_bet_value
+
+    elif strategy_piquemouche_martingale == True:
+        if game_count == 0:
+            bet_value = basic_bet_value
+        if last_game_draw == 0:
+            if losing_loop >= 1:
+                losing_money_index += bet_value
+            if winning_loop >= 1:
+                losing_money_index -= bet_value
+            if (losing_loop % 3) == 0 and losing_money_index > bet_value:
+                bet_value = bet_value * 2
+            if losing_money_index <= bet_value:
+                bet_value = basic_bet_value
+            if bet_value > (basic_bet_value * 32):
+                bet_value = basic_bet_value
+
+    elif strategy_custom_piquemouche_martingale == True:
+        if game_count == 0:
+            bet_value = basic_bet_value
+            # Work in Progress
+
+    elif bet_strategy == False:
         bet_value = basic_bet_value
     
-    if highest_bet < bet_value:
-        highest_bet = bet_value
-
     custom_time_sleep(0.5)
     print("\nBank Account:", my_money_final, "€")
     print("\nYou bet", bet_value, "€")
@@ -349,7 +422,7 @@ while game_running == True:
     print("\nWait a few seconds...")
     custom_time_sleep(0.5)
     print("Dealer is dealing cards.")
-    custom_time_sleep(2)
+    custom_time_sleep(0.5)
     double_line()
 
     # Dealing cards:
@@ -391,8 +464,11 @@ while game_running == True:
             break
         if player_black_jack == True:
             break
-        custom_time_sleep(1)
-        if robot_activated == False:
+        custom_time_sleep(0.5)
+        if robot_activated == False and len(player_hand) == 2:
+            whats_next_handle = input("\nWhat's your next move?\na) Hit\nb) Stand\nc) Double Down (x2)\n\n")
+            whats_next = whats_next_handle.lower()
+        elif robot_activated == False and len(player_hand) > 2:
             whats_next_handle = input("\nWhat's your next move?\na) Hit\nb) Stand\n\n")
             whats_next = whats_next_handle.lower()
                 
@@ -400,9 +476,28 @@ while game_running == True:
 
         if robot_activated == True:
 
-            if player_score < 12:
+            if player_score < 9:
                 whats_next = hit
-
+            if player_score < 12 and len(player_hand) > 2:
+                whats_next = hit
+            if len(player_hand) == 2 and player_score < 12:
+                whats_next = hit
+            if (len(player_hand) == 2 and player_score == 9) and (dealer_face_up_card_value >= 3 and dealer_face_up_card_value <= 6):
+                if bet_strategy == False:
+                    whats_next = double_down
+                elif bet_strategy == True:
+                    whats_next = hit
+            if (len(player_hand) == 2 and player_score == 10) and (dealer_face_up_card_value >= 2 and dealer_face_up_card_value <= 9):
+                if bet_strategy == False:
+                    whats_next = double_down
+                elif bet_strategy == True:
+                    whats_next = hit
+            if (len(player_hand) == 2 and player_score == 11) and (dealer_face_up_card_value >= 2 and dealer_face_up_card_value <= 10):
+                if bet_strategy == False:
+                    whats_next = double_down
+                elif bet_strategy == True:
+                    whats_next = hit
+            
             if (ace_in_hand != 1 and player_score == 12) and (dealer_face_up_card_value == 2 or dealer_face_up_card_value == 3 or dealer_face_up_card_value >= 7):
                 whats_next = hit
             if (ace_in_hand != 1 and player_score == 12 and len(player_hand) == 2) and (first_player_card_value == 10 or first_player_card_value == 2) and (dealer_face_up_card_value == 4):
@@ -462,13 +557,40 @@ while game_running == True:
 
         # Player / Robot standing logic:
 
-        else: 
+        elif whats_next == stand: 
             hitting_card = False
             double_line()
             print("\nYou Stand!")
             double_line()
-                
-        continue
+
+        # Player / Robot Double Down logic:
+
+        elif whats_next == double_down:
+            hitting_card = False
+            double_down_status = True
+            double_down_counter += 1
+            double_down_bet = bet_value * 2
+            my_money_final -= bet_value
+            double_line()
+            print("\nYou Double your bet!")
+            print("\nYour total bet value is", double_down_bet, "€")
+            double_line()
+            custom_time_sleep(0.5)
+            print("\nDealing cards...")
+            custom_time_sleep(1)
+            new_card_for_player()
+            print("\nYou got a", player_hand[-1][1])
+            custom_time_sleep(1)
+            double_line()
+            deal_hand_face_down()
+            your_hand()
+            double_line()
+
+            if player_score > 21:
+                custom_time_sleep(1)
+                player_bust = True
+                print("\nYou bust!")
+                custom_time_sleep(1)
 
     # Dealer move:
 
@@ -477,62 +599,93 @@ while game_running == True:
     if dealer_black_jack == True:
         dealer_blackjack_count += 1
         print("\nDealer has a BlackJack!")
+    
+    while dealer_bust == False and player_black_jack == False:
 
-    while dealer_score < 17 and dealer_bust == False and player_black_jack == False:
-        custom_time_sleep(1)
-        double_line()
-        print("\nDealer Hits!\n")
-        double_line()
-        custom_time_sleep(2)
-        new_card_for_dealer()
-        print("\nDealer got a", dealer_hand[-1][1])
-        custom_time_sleep(1)
-        double_line()
-        deal_hand()
+        if (dealer_score < 17) or (soft_17_hit == True and dealer_score == 17 and dealer_ace_in_hand == 1):
+            custom_time_sleep(0.5)
+            double_line()
+            print("\nDealer Hits!\n")
+            double_line()
+            custom_time_sleep(1)
+            new_card_for_dealer()
+            print("\nDealer got a", dealer_hand[-1][1])
+            custom_time_sleep(0.5)
+            double_line()
+            deal_hand()
         
-        if dealer_score > 21:
-            custom_time_sleep(1)
+        
+        elif dealer_score > 21:
+            custom_time_sleep(0.5)
             dealer_bust = True
+            double_line()
             print("\nDealer busts!")
-            custom_time_sleep(1)
+            custom_time_sleep(0.5)
+            break
+
+        else:
+            custom_time_sleep(0.5)
+            double_line()
+            print("\nDealer stands.")
+            custom_time_sleep(0.5)
+            break
                 
     # Results rules:
 
-    custom_time_sleep(1.5)
+    custom_time_sleep(0.5)
     double_line()
     print("\nFinal Result")
     double_line()
     deal_hand()
     your_hand()
 
-    custom_time_sleep(1.5)
+    custom_time_sleep(1)
     if (player_score > dealer_score and player_bust == False and player_black_jack == False) or (player_bust == False and dealer_bust == True and player_black_jack == False):
         winning_count += 1
-        my_money_final += bet_value * 2
         last_game_win += 1
         last_game_blackjack = 0
         last_game_draw = 0
         last_game_lose = 0
-        double_line()
-        print("\nC O N G R A T S !")
-        print("Y O U   W O N !")
-        print("\nYou won:", (bet_value * 2), "€")
-        double_line()
         winning_loop += 1
         losing_loop = 0
+        
+        if double_down_status == False:
+            my_money_final += bet_value * 2
+            double_line()
+            print("\nC O N G R A T S !")
+            print("Y O U   W O N !")
+            print("\nYou won:", (bet_value * 2), "€")
+            double_line()
+        elif double_down_status == True:
+            won_double_down_counter += 1
+            my_money_final += double_down_bet * 2
+            double_line()
+            print("\nC O N G R A T S !")
+            print("Y O U   W O N !")
+            print("\nYou won:", (double_down_bet * 2), "€")
+            double_line()
+        
 
 
-    elif (player_score == dealer_score and player_bust == False) or (player_black_jack == True and dealer_black_jack == True):
+    elif (player_score == dealer_score and dealer_black_jack == False and player_bust == False) or (player_black_jack == True and dealer_black_jack == True):
         draw_count += 1
-        my_money_final += bet_value
         last_game_draw += 1
         last_game_blackjack = 0
         last_game_win = 0
         last_game_lose = 0
-        double_line()
-        print("\nI T ' S   A   D R A W ...")
-        print("\nYou won:", bet_value, "€")
-        double_line()
+
+        if double_down_status == False:
+            my_money_final += bet_value
+            double_line()
+            print("\nI T ' S   A   D R A W ...")
+            print("\nYou won:", bet_value, "€")
+            double_line()
+        elif double_down_status == True:
+            my_money_final += double_down_bet
+            double_line()
+            print("\nI T ' S   A   D R A W ...")
+            print("\nYou won:", double_down_bet, "€")
+            double_line()
 
     elif (dealer_score > player_score and dealer_bust == False) or (player_black_jack == False and dealer_black_jack == True) or (player_bust == True):
         losing_count += 1
@@ -568,7 +721,18 @@ while game_running == True:
     # Results Display:
 
     game_count += 1
-    total_bet_value += bet_value
+
+    if highest_bet < bet_value:
+        highest_bet = bet_value
+
+    if highest_bet < double_down_bet:
+        highest_bet = double_down_bet
+
+    if double_down_status == False:
+        total_bet_value += bet_value
+    elif double_down_status == True:
+        total_bet_value += double_down_bet
+
     if winning_loop > top_winning_loop:
         top_winning_loop = winning_loop
     if losing_loop > top_losing_loop:
@@ -600,8 +764,9 @@ while game_running == True:
     print("Total bet placed:", total_bet_value, "€")
     print("\nTotal Games:", game_count)
     print("Winrate*:", winrate, "%")
-    print("\nWinning Loop:", last_game_win)
-    print("Losing Loop:", last_game_lose)
+    print("Number of Double Down:", double_down_counter)
+    print("\nCurrent Winning Loop:", last_game_win)
+    print("Current Losing Loop:", last_game_lose)
     print("\nTop Winning Loop:", top_winning_loop)
     print("Top Losing Loop:", top_losing_loop)
     print("Number of Big Losing Loops:", big_losing_loop)
@@ -614,10 +779,10 @@ while game_running == True:
             print("Betting Strategy: Custom Martingale")
         elif strategy_martingale == True:
             print("Betting Strategy: Martingale")
-        elif strategy_hi_lo_counting == True:
-            print("Betting Strategy: Hi-Lo Counting")
         elif strategy_custom_alembert_pyramid == True:
             print("Betting Strategy: Custom Alembert Pyramid")
+        elif strategy_piquemouche_martingale == True:
+            print("Betting Strategy: Piquemouche Martingale")
         else:
             print("Betting Strategy: None")
     else:
